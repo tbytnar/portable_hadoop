@@ -9,7 +9,7 @@ services:
     environment:
       - CLUSTER_NAME=test
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop.env
     ports:
       - "50070:50070"
   datanode:
@@ -18,7 +18,7 @@ services:
     volumes:
       - datanode:/hadoop/dfs/data
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop.env
     environment:
       SERVICE_PRECONDITION: "namenode:50070"
     ports:
@@ -30,7 +30,7 @@ services:
     environment:
       SERVICE_PRECONDITION: "namenode:8020 namenode:50070 datanode:50075"
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop.env
     ports:
       - "8088:8088"
   historyserver:
@@ -42,7 +42,7 @@ services:
     volumes:
       - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop.env
     #command: ./opt/hadoop-*/sbin/mr-jobhistory-daemon.sh start historyserver
     ports:
       - "8188:8188"
@@ -54,7 +54,7 @@ services:
     environment:
       SERVICE_PRECONDITION: "namenode:8020 namenode:50070 datanode:50075 resourcemanager:8088"
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop.env
     ports:
       - "8042:8042"
   hive-server:
@@ -88,16 +88,19 @@ services:
       - client:/tmp/client
     ports: 
       - "8888:8888"
+      - "4040:4040"
     tty: true
     env_file:
-      - ./hadoop-hive.env
+      - ./hadoop-hive-spark.env
   spark-master:
     image: tbytnar/portable-hadoop:spark-master
     container_name: spark-master
     ports:
       - "8080:8080"
       - "8889:8888"
-      - "4040:4040"
+      - "4041:4040"
+    env_file:
+      - ./hadoop-spark.env
     depends_on: ["spark-worker1","spark-worker2"]
   spark-worker1:
     environment: 
@@ -106,6 +109,8 @@ services:
     container_name: spark-worker1
     ports:
       - "8081:8080"
+    env_file:
+      - ./hadoop-spark.env
   spark-worker2:
     environment: 
       - MASTER_CONTAINER_NAME=spark-master
@@ -113,6 +118,8 @@ services:
     container_name: spark-worker2
     ports:
       - "8082:8080"
+    env_file:
+      - ./hadoop-spark.env
 volumes:
   namenode:
   datanode:

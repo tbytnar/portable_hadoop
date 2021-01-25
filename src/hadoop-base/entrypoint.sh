@@ -7,61 +7,110 @@ function addProperty() {
   local path=$1
   local name=$2
   local value=$3
+  local type=$4
 
-  local entry="<property><name>$name</name><value>${value}</value></property>"
-  local escapedEntry=$(echo $entry | sed 's/\//\\\//g')
-  sed -i "/<\/configuration>/ s/.*/${escapedEntry}\n&/" $path
+    if [ ! -f "$path" ]; then
+        echo "$path is missing.  Creating from template."
+        local template_path="$path.template"
+        cp $template_path $path
+    fi
+
+    if [ "$type" = "xml" ];
+    then
+        local entry="<property><name>$name</name><value>${value}</value></property>"
+        local escapedEntry=$(echo $entry | sed 's/\//\\\//g')
+        sed -i "/<\/configuration>/ s/.*/${escapedEntry}\n&/" $path
+    elif [ "$type" = "txt" ];
+    then
+        local entry="$name=$value"
+        echo $entry >> $path
+    else
+        echo "Unknown file type ${type} supplied.  Please try again."
+    fi
+    
 }
 
 function configure() {
     local path=$1
     local module=$2
     local envPrefix=$3
+    local filetype=$4
 
     local var
     local value
     
-    echo "Configuring $module"
-    for c in `printenv | perl -sne 'print "$1 " if m/^${envPrefix}_(.+?)=.*/' -- -envPrefix=$envPrefix`; do 
-        if [ ! -f "$path" ]; then
-            echo "$path is missing.  Creating from template."
-            local template_path="$path.template"
-            cp $template_path $path
-        fi
-        name=`echo ${c} | perl -pe 's/___/-/g; s/__/@/g; s/_/./g; s/@/_/g;'`
-        var="${envPrefix}_${c}"
-        value=${!var}
-        echo " - Setting $name=$value"
-        addProperty $path $name "$value"
-    done
+    if [ "$filetype" = "xml" ];
+    then
+        echo "Configuring $module : Filetype $filetype"
+        for c in `printenv | perl -sne 'print "$1 " if m/^${envPrefix}_(.+?)=.*/' -- -envPrefix=$envPrefix`; do 
+            name=`echo ${c} | perl -pe 's/___/-/g; s/__/@/g; s/_/./g; s/@/_/g;'`
+            var="${envPrefix}_${c}"
+            value=${!var}
+            echo " - Setting $name=$value"
+            addProperty $path $name "$value" $filetype
+        done
+    elif [ "$filetype" = "txt" ];
+    then
+        echo "Configuring $module : Filetype $filetype"
+        for c in `printenv | perl -sne 'print "$1 " if m/^${envPrefix}_(.+?)=.*/' -- -envPrefix=$envPrefix`; do 
+            name=`echo ${c} | perl -pe 's/___/-/g; s/__/@/g; s/@/_/g;'`
+            var="${envPrefix}_${c}"
+            value=${!var}
+            echo " - Setting $name=$value"
+            addProperty $path $name "$value" $filetype
+        done
+    else
+        echo "Unknown file type ${filetype} supplied.  Please try again."
+    fi
+
+
+
 }
 
-configure /etc/hadoop/core-site.xml core CORE_CONF
-configure /etc/hadoop/hdfs-site.xml hdfs HDFS_CONF
-configure /etc/hadoop/yarn-site.xml yarn YARN_CONF
-configure /etc/hadoop/httpfs-site.xml httpfs HTTPFS_CONF
-configure /etc/hadoop/kms-site.xml kms KMS_CONF
-configure /etc/hadoop/mapred-site.xml mapred MAPRED_CONF
-configure /opt/hive/conf/hive-site.xml hive HIVE_SITE_CONF
+roles=$(echo $NODE_ROLES | tr "," "\n")
+
+for role in $roles; do
+    if [ "$role" = "core" ];
+    then
+        echo "Configuring Hadoop Role"
+        configure /etc/hadoop/core-site.xml core CORE_CONF xml
+        configure /etc/hadoop/hdfs-site.xml hdfs HDFS_CONF xml
+        configure /etc/hadoop/yarn-site.xml yarn YARN_CONF xml
+        configure /etc/hadoop/httpfs-site.xml httpfs HTTPFS_CONF xml
+        configure /etc/hadoop/kms-site.xml kms KMS_CONF xml
+        configure /etc/hadoop/mapred-site.xml mapred MAPRED_CONF xml      
+    elif [ "$role" = "hive" ];
+    then 
+        echo "Configuring Hive Role"
+        configure /opt/hive/conf/hive-site.xml hive HIVE_SITE_CONF xml
+    elif [ "$role" = "spark" ];
+    then
+        echo "Configuring Spark Role"
+        configure /usr/local/spark/conf/spark-env.sh spark SPARK_CONF txt
+    else
+        echo "Nothing more to configure"
+    fi
+done
+
 
 if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     echo "Configuring for multihomed network"
 
     # HDFS
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host 0.0.0.0
-    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true
-    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.rpc-bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.servicerpc-bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.http-bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.namenode.https-bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.client.use.datanode.hostname true xml
+    addProperty /etc/hadoop/hdfs-site.xml dfs.datanode.use.datanode.hostname true xml
 
     # YARN
-    addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.bind-host 0.0.0.0
-    addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.bind-host 0.0.0.0
-    addProperty /etc/hadoop/yarn-site.xml yarn.timeline-service.bind-host 0.0.0.0
+    addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.bind-host 0.0.0.0 xml
+    addProperty /etc/hadoop/yarn-site.xml yarn.timeline-service.bind-host 0.0.0.0 xml
 
     # MAPRED
-    addProperty /etc/hadoop/mapred-site.xml yarn.nodemanager.bind-host 0.0.0.0
+    addProperty /etc/hadoop/mapred-site.xml yarn.nodemanager.bind-host 0.0.0.0 xml
 fi
 
 if [ -n "$GANGLIA_HOST" ]; then

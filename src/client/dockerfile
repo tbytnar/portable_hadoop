@@ -1,12 +1,4 @@
-FROM tbytnar/portable-hadoop:hadoop-base
-
-# required package installation(s)
-RUN apt-get update && \
-    apt-get -y install openssh-server ssh software-properties-common python3-pip python3-dev libsasl2-dev libsasl2-2 libsasl2-modules-gssapi-mit
-
-# required package installation(s)
-RUN apt-get update
-RUN apt-get -y install openssh-server ssh software-properties-common openjdk-8-jre wget dos2unix tar scala
+FROM tbytnar/portable-hadoop:hive-base
 
 # Setting up environment variables
 ENV DAEMON_RUN=true
@@ -16,37 +8,28 @@ ENV SPARK_OPTS --driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M -
 ENV PYTHONPATH $SPARK_HOME/python:$SPARK_HOME/python/lib/py4j-0.10.7-src.zip
 ENV MASTER_CONTAINER_NAME=sparkmaster
 
-# Get Apache Spark
-RUN wget https://downloads.apache.org/spark/spark-3.0.1/spark-3.0.1-bin-hadoop2.7.tgz
-
-# Install Spark and move it to the folder "/spark" and then add this location to the PATH env variable
-RUN tar -xzf spark-3.0.1-bin-hadoop2.7.tgz && \
-    mv spark-3.0.1-bin-hadoop2.7 /usr/local/spark && \
-    rm spark-3.0.1-bin-hadoop2.7.tgz && \
-    export PATH=$SPARK_HOME/bin:$PATH
+# required package installation(s)
+RUN apt-get update && \
+    apt-get -y install openssh-server ssh software-properties-common python3-pip python3-dev libsasl2-dev libsasl2-2 libsasl2-modules-gssapi-mit wget dos2unix tar scala
 
 # Inject Spark configurations
 ADD /src/client/conf/env.sh /root/env.sh
 RUN dos2unix /root/env.sh
 RUN /root/env.sh
 
+# Get Apache Spark
+RUN wget https://downloads.apache.org/spark/spark-3.0.1/spark-3.0.1-bin-hadoop2.7.tgz && \ 
+# Install Spark and move it to the folder "/spark" and then add this location to the PATH env variable
+    tar -xzf spark-3.0.1-bin-hadoop2.7.tgz && \
+    mv spark-3.0.1-bin-hadoop2.7 /usr/local/spark && \
+    rm spark-3.0.1-bin-hadoop2.7.tgz && \
+    export PATH=$SPARK_HOME/bin:$PATH
+
 # Add documentation directory
 ADD ../documentation /documentation
 
-# upgrade pip and install jupyter
-RUN pip3 install --upgrade pip
-RUN pip install jupyter
+# upgrade pip and install python modules
+RUN pip3 install --upgrade pip && \
+    pip install jupyter sasl six bit-array thriftpy2 thrift_sasl==0.4.2 pandas pyhive
 
-# install python modules
-RUN pip install sasl
-RUN pip install six
-RUN pip install bit-array
-RUN pip install thriftpy2
-RUN pip install thrift_sasl==0.4.2
-RUN pip install impyla
-RUN pip install pandas
-RUN pip install pyhive
-
-ADD /src/client/startup.sh /
-
-CMD ./startup.sh
+CMD ["jupyter notebook --NotebookApp.token='' --allow-root --no-browser --ip=0.0.0.0"]
