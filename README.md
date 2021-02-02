@@ -37,19 +37,12 @@ To launch everything:
 
 <br>
 
-## Testing
+## Testing and What next?
 Load data into Hive and test it:
 
-    $ docker-compose exec hive-server bash
-    # /opt/hive/bin/beeline -u jdbc:hive2://localhost:10000
-    > CREATE TABLE pokes (foo INT, bar STRING);
-    > LOAD DATA LOCAL INPATH '/opt/hive/examples/files/kv1.txt' OVERWRITE INTO TABLE pokes;
-    > SELECT * FROM pokes;
+    Open the Documentation directory and get started with the included exercises
 
 <br>
-
-## What next?
-Open the Documentation directory and get started with the included exercises
 
 ## Requirements
 Docker v20+
