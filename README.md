@@ -38,9 +38,7 @@ To launch everything:
 <br>
 
 ## Testing and What next?
-Load data into Hive and test it:
-
-    Open the Documentation directory and get started with the included exercises
+Begin following the training exercises here:  [Portable Hadoop Training](https://tbytnar.github.io/portable_hadoop/)
 
 <br>
 
