@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-  namenode:
+  hadoop:
     image: tbytnar/portable-hadoop:hadoop-namenode
     container_name: namenode
     volumes:
@@ -12,6 +12,7 @@ services:
       - ./hadoop.env
     ports:
       - "50070:50070"
+    depends_on: ["datanode","historyserver","resourcemanager","nodemanager"]
   datanode:
     image: tbytnar/portable-hadoop:hadoop-datanode
     container_name: datanode
@@ -43,7 +44,6 @@ services:
       - hadoop_historyserver:/hadoop/yarn/timeline
     env_file:
       - ./hadoop.env
-    #command: ./opt/hadoop-*/sbin/mr-jobhistory-daemon.sh start historyserver
     ports:
       - "8188:8188"
       - "19888:19888"
@@ -57,7 +57,7 @@ services:
       - ./hadoop.env
     ports:
       - "8042:8042"
-  hive-server:
+  hive:
     image: tbytnar/portable-hadoop:hadoop-hiveserver
     container_name: hive-server
     env_file:
@@ -67,7 +67,7 @@ services:
       SERVICE_PRECONDITION: "hive-metastore:9083 hive-metastore:5432"
     ports:
       - "10000:10000"
-    depends_on: ["namenode","datanode","hive-metastore","client","historyserver","resourcemanager","nodemanager"]
+    depends_on: ["hadoop","hive-metastore"]
   hive-metastore:
     image: tbytnar/portable-hadoop:hive-metastore
     container_name: hive-metastore
@@ -80,19 +80,18 @@ services:
     ports:
       - "9083:9083"
       - "5432:5432"
-    depends_on: ["namenode","datanode"]
   client:
     image: tbytnar/portable-hadoop:client
     container_name: client
     volumes:
-      - client:/tmp/client
+      - /share:/share
     ports: 
       - "8888:8888"
       - "4040:4040"
     tty: true
     env_file:
       - ./hadoop-hive-spark.env
-  spark-master:
+  spark:
     image: tbytnar/portable-hadoop:spark-master
     container_name: spark-master
     ports:
