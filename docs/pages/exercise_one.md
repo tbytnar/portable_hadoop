@@ -24,11 +24,9 @@ docker cp "documentation/Exercise 1/test-data.csv" datanode:/tmp
 
 Once the command completes, your file has been injected into the /tmp/ directory on the datanode container.
     
-> **Example**
-> ```powershell
+> **Example**<br>
 > PS D:\Development\portable_hadoop> docker cp '.\documentation\Exercise 1\test-data.csv' datanode:/tmp
 > PS D:\Development\portable_hadoop>
-> ```
 
 Validate that the file has been injected by attaching to the container’s shell and viewing the contents of the /tmp/ directory
 
@@ -37,14 +35,12 @@ docker-compose exec datanode bash
 ls /tmp/
 ```
 
-> **Example**
-> ```powershell
+> **Example**<br>
 > PS D:\Development\portable_hadoop> docker-compose exec datanode bash
 > 
 > root@04b899b5bb98:/# ls /tmp
 > Jetty_localhost_38001_datanode____.alxwtp  hsperfdata_root  test-data.csv
 > root@04b899b5bb98:/#
-> ```
 
 <br>
 
