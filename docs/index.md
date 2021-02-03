@@ -1,72 +1,120 @@
-The exercises in this manual assume that you have knowledge of the following technologies and requirements:
+# Portable Hadoop
+## Mission Statement
+The mission of the Portable Hadoop Environment (PHE) is to provide data professionals with a way to rapidly provision a barebones hadoop environment that allows the importing, manipulating and dissecting of data all from any machine with Docker installed.
 
-*   Docker
-*   Git
-*   Terminal or Shell access in your machine’s operating system
+## Description
+The PHE has been designed to be a minimalistic environment to focus on the core aspects of the Hadoop ecosystem while still resembling a realistic architecture.  While there are intentions of adding more components through a modular container design, the essentials will always be the center of focus.  HDFS, YARN, Hive, Spark represent the core components of the PHE.  
 
+While the current iteration uses Hadoop and Hive 2, future development of the PHE will include Hadoop and Hive 3 as its own independent environment.
 
-# Exercises
+## Uses for the PHE
+* Training
+* Development
+* Proof of concept
+* Continuous Development or Continuous Integration
 
-The exercises in this manual assume that you have knowledge of the following technologies and requirements:
+## How to get started
+Each of the environments is easily spun up on its own using docker-compose.  Follow the examples below to launch your environment of choice.
+To launch Hadoop only:
 
-*   Docker
-*   Git
-*   Terminal or Shell access in your machine’s operating system
+    docker-compose up -d hadoop
 
+To launch Hive (will also launch Hadoop):
 
-## Before Getting Started
+    docker-compose up -d hive
 
-After completing this section you should have all required software installed and the PHE repository cloned locally.
+To launch the client only:
 
-**Note**: I will not be going into great detail on how to install the required software, for more help there you will need to refer to their own technical support.  For Linux desktop users, you will need to reference your distribution’s support for Docker installation.  
+    docker-compose up -d client
 
-1. Prepare your OS for Docker
-    * Windows
-        1. Make sure you are running Windows 10 version 1903 or higher.
-        2. Install and configure WSL2: [Click Here](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-        3. Install the [Linux Kernel Update Package](https://docs.microsoft.com/en-us/windows/wsl/install-win10#step-4---download-the-linux-kernel-update-package).
-    * macOS:
-        1. Mac hardware must be a 2010 or newer model with an Intel Processor.
-        2. macOS must be version 10.14 or newer.
-2. Download and Install Docker
-    * Windows: [Click Here](https://docs.docker.com/docker-for-windows/wsl/)<br>
-    * macOS: [Click Here](https://docs.docker.com/docker-for-mac/install/)
-3. Download and Install Git
-    * Windows: [Click Here](https://git-scm.com/download/win)
-    * macOS: [Click Here](https://git-scm.com/download/mac)
-4. Git clone the repository
-    * From a terminal window (Powershell in Windows, Terminal in macOS) execute the following from a directory you wish to store the source code for the PHE:
-    ```
-    git clone https://github.com/tbytnar/docker-hive.git
-    ```
-    * This will automatically download all of the necessary files to your workstation
-5. Launch the environments
-    * To launch Hadoop only:
-        ```
-        docker-compose up -d hadoop
-        ```
-    * To launch Hive (will also launch Hadoop):
-        ```
-        docker-compose up -d hive
-        ```
-    * To launch the client only:
-        ```
-        docker-compose up -d client
-        ```
-    * To launch Spark only:
-        ```
-        docker-compose up -d spark
-        ```
-    * To launch everything:
-        ```
-        docker-compose up -d
-        ```
-    3.  When you launch these environments for the first time each of the source images will have to be downloaded.  This process can take anywhere from 5 to 15 minutes depending upon your internet bandwidth.  Once completed you should see an output similar to this: 
+To launch Spark only:
 
-        ![](../images/image18.png "image_tooltip")
+    docker-compose up -d spark
 
-    **If you experience any errors please refer to the troubleshooting appendix at the end of this document or reach out to the maintainers of this repository.**
+To launch everything:
+    
+    docker-compose up -d
 
 <br>
 
-[Continue on to Exercise 1](pages/exercise_one.md)
+## Testing and What next?
+> Begin following the training exercises here:  [Getting Started](../index.md)
+<br>
+
+## Requirements
+Docker v20+
+Windows
+```
+  - WSL 2
+```
+
+## Container Architecture
+The Hadoop environment consists of the following containers:
+* **Namenode** - The primary (master) Hadoop container
+* **Datanode** - The secondary (worker) Hadoop container
+* **Historyserver** - Job history server
+* **Nodemanager** - Job execution nodes manager
+* **Resourcemanager** - YARN resource manager
+* **Client** - Jupyter Notebook and Python
+
+The Hive environment consists of the following containers:
+* **Hive-server** - HiveServer2 and all Hive executables
+* **Hive-metastore** - Hive Metastore and PostgreSQL Metastore Database
+  
+The Spark environment consists of the following containers:
+* **Spark Master** - Spark master (Client is configured to attach here)
+* **Spark Worker 1** - Spark Worker 1 
+* **Spark Worker 2** - Spark Worker 2
+  
+<br>
+
+## Troubleshooting
+### Windows
+---
+Occasional permission errors when attempting to run any Docker commands.
+    
+    Be sure to run Powershell as Administrator each time you interact with Docker.
+
+Docker is taking up all the memory on my workstation
+
+    See this link for information on how to limit Docker’s memory consumption:
+    https://medium.com/@lewwybogus/how-to-stop-wsl2-from-hogging-all-your-ram-with-docker-d7846b9c5b37
+
+ERROR: for (Container)  Cannot start service (Container): Ports are not available: listen tcp 0.0.0.0:(Port): bind: An attempt was made to access a socket in a way forbidden by its access permissions.
+
+    This can happen occasionally as Windows Updates tend to change the Dynamic port ranges reserved on the IPv4 adapters.  This can be seen by executing the following:
+    
+      netsh interface ipv4 show excludedportrange protocol=tcp
+    
+    To fix the issue execute the following:
+
+      netsh int ipv4 set dynamic tcp start=49152 num=16384
+      net stop winnat
+      net start winnat
+
+<br>
+
+
+## Future Plans (Road Map)
+* Expand the client containers capabilities
+  * Q1 2021
+* Add more Hadoop ecosystem components as modular containers (Kafka, Ranger, etc...)
+  * Q1 2021
+* Improve Cross Platform Compatibility and Reliability
+  * Q1 2021
+* Hadoop v3/Hive v3
+  * Q2 2021
+* Baseline Performance “Edition”
+  * Q3 2021
+* Baseline Security “Edition”
+  * Q4 2021
+
+
+
+## Contributors
+* Tim Bytnar [@tbytnar](https://github.com/tbytnar) (maintainer)
+
+## Huge thanks to
+* Ivan Ermilov [@earthquakesan](https://github.com/earthquakesan)
+* Yiannis Mouchakis [@gmouchakis](https://github.com/gmouchakis)
+* Ke Zhu [@shawnzhu](https://github.com/shawnzhu)

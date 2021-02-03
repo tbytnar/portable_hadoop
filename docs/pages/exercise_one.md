@@ -8,7 +8,7 @@ After completing this exercise you will be proficient in the following tasks:
 *   Creating a Hive table for the data
 *   Querying the data
 
-For this exercise a data file has been provided with the source files here: documentation\Exercise 1\test-data.csv
+For this exercise a data file has been provided with the source files here: documentation\exercise_1\test-data.csv
 
 <br>
 
@@ -19,14 +19,14 @@ You’ll need to know the full path to the source file you wish to inject into t
 
 
 ```shell
-docker cp "documentation/Exercise 1/test-data.csv" datanode:/tmp
+docker cp "documentation/exercise_1/test-data.csv" datanode:/tmp
 ```
 
 Once the command completes, your file has been injected into the /tmp/ directory on the datanode container.
     
 > **Example**<br>
 > ```shell
-> PS D:\Development\portable_hadoop> docker cp '.\documentation\Exercise 1\test-data.csv' datanode:/tmp
+> PS D:\Development\portable_hadoop> docker cp '.\documentation\exercise_1\test-data.csv' datanode:/tmp
 > PS D:\Development\portable_hadoop>
 > ```
 
@@ -38,11 +38,13 @@ ls /tmp/
 ```
 
 > **Example**<br>
+> ```shell
 > PS D:\Development\portable_hadoop> docker-compose exec datanode bash
 > 
 > root@04b899b5bb98:/# ls /tmp<br>
 > Jetty_localhost_38001_datanode____.alxwtp  hsperfdata_root  test-data.csv<br>
 > root@04b899b5bb98:/#
+> ```
 
 <br>
 
@@ -67,26 +69,18 @@ For the purposes of this exercise we are going to assume that the standard opera
 hdfs dfs -mkdir -p /user/hive/warehouse/phe-demo/test-data
 ```
 
-> **Example**<br>
-> root@04b899b5bb98:/# hdfs dfs -mkdir -p /user/hive/warehouse/phe-demo/test-data
-> root@04b899b5bb98:/# hdfs dfs -put /tmp/test-data.csv /user/hive/warehouse/> phe-demo/test-data/
-> root@04b899b5bb98:/#
-
 Copy the source file from the /tmp/ directory to the newly created HDFS directory:
-
 
 ```shell
 hdfs dfs -put /tmp/test-data.csv /user/hive/warehouse/phe-demo/test-data/
 ```
 
-
-
-
-<p id="gdcalert5" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image5.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert6">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image5.png "image_tooltip")
-
+> **Example**<br>
+> ```shell
+> root@04b899b5bb98:/# hdfs dfs -mkdir -p /user/hive/warehouse/phe-demo/test-data
+> root@04b899b5bb98:/# hdfs dfs -put /tmp/test-data.csv /user/hive/warehouse/phe-demo/test-data/
+> root@04b899b5bb98:/#
+> ```
 
 At this point we have completed our work in the datanode container.  You can now leave its shell prompt by executing the following:
 
@@ -130,11 +124,11 @@ CREATE DATABASE PHEDEMO;
 ```
 
 > **Example**
-> <pre>
+> ```shell
 > 0: jdbc:hive2://localhost:10000> CREATE DATABASE PHEDEMO;
 > No rows affected (1.094 seconds)
 > 0: jdbc:hive2://localhost:10000>
-> </pre>
+> ```
 
 Confirm the database was created successfully by executing:
 
@@ -161,15 +155,40 @@ Without exiting terminal or the beeline prompt proceed to the next step
 
 ### Step 4 - Create Hive Table for Data
 
-For convenience the CREATE TABLE sql statement is stored in the source files located here: “_documentation/Exercise 1/test-data-table.sql.”_  Copy or type the entire statement and then paste it into the terminal so it is executed at the beeline terminal. NOTE: You will see “No rows affected…” when the statement completes.
+Copy or type the folowing sql statement and then paste it into the terminal so it is executed at the beeline terminal. NOTE: You will see “No rows affected…” when the statement completes.
+
+```sql
+CREATE EXTERNAL TABLE IF NOT EXISTS phedemo.testdata
+(
+    ID int,
+    notes string,
+    date_entered date,
+    reg_no bigint
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION 'hdfs://namenode:8020/user/hive/warehouse/phe-demo/test-data';
+```
 
 
 
-<p id="gdcalert9" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image9.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert10">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image9.png "image_tooltip")
-
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> CREATE EXTERNAL TABLE IF NOT EXISTS phedemo.testdata
+> . . . . . . . . . . . . . . . .> (
+> . . . . . . . . . . . . . . . .>     ID int,
+> . . . . . . . . . . . . . . . .>     notes string,
+> . . . . . . . . . . . . . . . .>     date_entered date,
+> . . . . . . . . . . . . . . . .>     reg_no bigint
+> . . . . . . . . . . . . . . . .> )
+> . . . . . . . . . . . . . . . .> ROW FORMAT DELIMITED
+> . . . . . . . . . . . . . . . .> FIELDS TERMINATED BY ','
+> . . . . . . . . . . . . . . . .> STORED AS TEXTFILE
+> . . . . . . . . . . . . . . . .> LOCATION 'hdfs://namenode:8020/user/hive/warehouse/phe-demo/test-data';
+> No rows affected (0.275 seconds)
+> 0: jdbc:hive2://localhost:10000>
+```
 
 Verify that the table has been created and that data is now accessible by selecting everything from it:
 
@@ -177,13 +196,21 @@ Verify that the table has been created and that data is now accessible by select
 SELECT * FROM phedemo.testdata;
 ```
 
-
-
-<p id="gdcalert10" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image10.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert11">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image10.png "image_tooltip")
-
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> SELECT * FROM phedemo.testdata;
+> +--------------+------------------------------------+------------------------+------------------+
+> | testdata.id  |           testdata.notes           | testdata.date_entered  | testdata.reg_no  |
+> +--------------+------------------------------------+------------------------+------------------+
+> | 123          |  This is just a test record        | NULL                   | NULL             |
+> | 456          |  This is just another test record  | NULL                   | NULL             |
+> | 789          |  This is also a test record        | NULL                   | NULL             |
+> | 124          |  This is only a test record        | NULL                   | NULL             |
+> | 125          |  This is just a test record        | NULL                   | NULL             |
+> +--------------+------------------------------------+------------------------+------------------+
+> 5 rows selected (1.488 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
 You can now execute SQL statements against the table.  When you are finished, execute !q at the beeline prompt.  Then execute exit at the bash shell to leave the hive-server container. 
 
