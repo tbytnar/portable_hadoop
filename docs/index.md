@@ -38,7 +38,7 @@ To launch everything:
 <br>
 
 ## Testing and What next?
-> Begin following the training exercises here:  [Getting Started](../index.md)
+> Begin following the training exercises here:  [Getting Started](pages/getting_started.md)
 <br>
 
 ## Requirements
