@@ -18,25 +18,33 @@ If you still have the terminal shell open from the “Before Getting Started” 
 You’ll need to know the full path to the source file you wish to inject into the Docker container.  Once you have this, then execute the following command:
 
 
+```shell
+docker cp "documentation/Exercise 1/test-data.csv" datanode:/tmp
 ```
-    docker cp "documentation/Exercise 1/test-data.csv" datanode:/tmp
-```
 
-
-
-Once the command completes, your file has been injected into the /tmp/ directory on the datanode container
+Once the command completes, your file has been injected into the /tmp/ directory on the datanode container.
     
-![alt_text](../images/image21.png "Docker copy file to container example")
-
+> **Example**
+> ```powershell
+> PS D:\Development\portable_hadoop> docker cp '.\documentation\Exercise 1\test-data.csv' datanode:/tmp
+> PS D:\Development\portable_hadoop>
+> ```
 
 Validate that the file has been injected by attaching to the container’s shell and viewing the contents of the /tmp/ directory
 
-```
-    docker-compose exec datanode bash
-    ls /tmp/
+```shell
+docker-compose exec datanode bash
+ls /tmp/
 ```
 
-![alt_text](../images/image17.png "image_tooltip")
+> **Example**
+> ```powershell
+> PS D:\Development\portable_hadoop> docker-compose exec datanode bash
+> 
+> root@04b899b5bb98:/# ls /tmp
+> Jetty_localhost_38001_datanode____.alxwtp  hsperfdata_root  test-data.csv
+> root@04b899b5bb98:/#
+> ```
 
 <br>
 
@@ -45,37 +53,29 @@ Validate that the file has been injected by attaching to the container’s shell
 If you are still attached to the datanode container’s shell, feel free to reuse that.  If not please attach to that using the following:
 
 
-```
+```shell
     docker-compose exec datanode bash
 ```
 
 
 Hive already has a warehouse directory configured in HDFS, it is located here:
 
-
-    /user/hive/warehouse
+**/user/hive/warehouse**
 
 For the purposes of this exercise we are going to assume that the standard operating procedure for this environment is to contain all database and table sources within the warehouse directory.  However we will need to create sub-directory structures for each database and table.  This can be done with a single command (note the use of the -p switch).
 
 
-```
+```shell
     hdfs dfs -mkdir -p /user/hive/warehouse/phe-demo/test-data
 ```
 
-
-
-    
-
-<p id="gdcalert4" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image4.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert5">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image4.png "image_tooltip")
+>![alt_text](../images/image7.png "image_tooltip")
 
 
 Copy the source file from the /tmp/ directory to the newly created HDFS directory:
 
 
-```
+```shell
     hdfs dfs -put /tmp/test-data.csv /user/hive/warehouse/phe-demo/test-data/
 ```
 
@@ -91,7 +91,7 @@ Copy the source file from the /tmp/ directory to the newly created HDFS director
 At this point we have completed our work in the datanode container.  You can now leave its shell prompt by executing the following:
 
 
-```
+```shell
     exit
 ```
 
@@ -102,7 +102,7 @@ At this point we have completed our work in the datanode container.  You can now
 You will now need to attach to the hive-server’s shell.  Do this by executing the following in terminal:
 
 
-```
+```shell
     docker-compose exec hive-server bash
 ```
 
@@ -110,7 +110,7 @@ You will now need to attach to the hive-server’s shell.  Do this by executing 
 Once at the prompt you will now launch Beeline while attaching to the Hive server by executing the following command:
 
 
-```
+```shell
     beeline -u jdbc:hive2://localhost:10000
 ```
 
@@ -125,9 +125,9 @@ Once at the prompt you will now launch Beeline while attaching to the Hive serve
 
 Now at the beeline prompt connected to Hive you can create a new database by executing the following SQL statement:
 
-
-    _CREATE DATABASE PHEDEMO;_
-
+```sql
+CREATE DATABASE PHEDEMO;
+```
 
     
 
@@ -138,11 +138,11 @@ Now at the beeline prompt connected to Hive you can create a new database by exe
 
 
 
-    Confirm the database was created successfully by executing:
+Confirm the database was created successfully by executing:
 
-
-    SHOW DATABASES;
-
+```sql
+SHOW DATABASES;
+```
 
     
 
@@ -185,4 +185,4 @@ You can now execute SQL statements against the table.  When you are finished, ex
 
  > [Go back to Getting Started](../index.md)
 
- > [Continue on to Exercise 2](pages/exercise_two.md)
+ > [Continue on to Exercise 2](../pages/exercise_two.md)
