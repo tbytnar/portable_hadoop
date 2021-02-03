@@ -69,4 +69,4 @@ After completing this section you should have all required software installed an
 
 <br>
 
-[Continue on to Exercise 1](pages/exercise_one.md)
+[Continue on to Exercise 1](exercise_one.md)
