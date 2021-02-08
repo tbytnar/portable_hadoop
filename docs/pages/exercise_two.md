@@ -316,4 +316,4 @@ Last take a look at the directory structure inside of HDFS by executing the foll
 
  > [Go back to Exercise 1](exercise_one.md)
 
- > [Continue on to Exercise 3](exercise_three.md)
+ > [Continue on to Challenge 1](challenge_one.md)

@@ -16,117 +16,99 @@ If you still have the terminal shell open from the previous section, feel free t
 
 You’ll need to know the full path to the python file you need to inject into the Docker container.  Once you have this, then execute the following command:
 
-
-```
-    docker cp "documentation/Exercise 3/parse_log.py" hive-server:/tmp
-```
-
-
-
-    We’ll also be reusing the log file from Challenge 1 so execute the following to upload it to the Hive Server.
-
-
-```
-    docker cp "documentation/Challenge 1/transactions.log" hive-server:/tmp
+```shell
+docker cp "documentation/exercise_3/parse_log.py" hive-server:/tmp
 ```
 
+We’ll also be reusing the log file from Challenge 1 so execute the following to upload it to the Hive Server.
 
+```shell
+docker cp "documentation/challenge_1/transactions.log" hive-server:/tmp
+```
 
-    
-
-<p id="gdcalert16" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image16.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert17">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image16.png "image_tooltip")
-
+> **Example**
+> ```shell
+> PS D:\Development\portable_hadoop> docker cp "documentation/exercise_3/parse_log.py" hive-server:/tmp
+> PS D:\Development\portable_hadoop> docker cp "documentation/challenge_1/transactions.log" hive-server:/tmp
+> PS D:\Development\portable_hadoop>
+> ```
 
 Validate that the file has been injected by attaching to the container’s shell and viewing the contents of the /tmp/ directory
 
-
+```shell
+docker-compose exec hive bash
+ls /tmp/
 ```
-    docker-compose exec hive-server bash
-    ls /tmp/
-```
 
+> **Example**
+> ```shell
+> PS D:\Development\portable_hadoop> docker-compose exec hive bash
+> root@4c9caa1f551d:/opt# ls /tmp/
+> 3b2f6978-ac26-4435-9bc4-bb9ce289728c_resources  435106ff-8421-4c28-bbcf-63b512eed00c_resources  hadoop-unjar2534986790954184614  hsperfdata_root  jetty-0.0.0.0-10002-hiveserver2-_-any-  parse_log.py  root  transactions.log
+> root@4c9caa1f551d:/opt#
+> ```
 
-
-    
-
-<p id="gdcalert17" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image17.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert18">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image17.png "image_tooltip")
-
-
+<br>
 
 ### Step 2 - Adding Files to HDFS
 
 If you are still attached to the datanode container’s shell, feel free to reuse that.  If not please attach to that using the following:
 
-
+```shell
+docker-compose exec hive-server bash
 ```
-    docker-compose exec hive-server bash
-```
-
 
 Hive already has a warehouse directory configured in HDFS, it is located here:
 
-
-    /user/hive/warehouse
+> /user/hive/warehouse
 
 For the purposes of this exercise we are going to assume that the standard operating procedure for this environment is to contain all database and table sources within the warehouse directory.  However we will need to create sub-directory structures for each database and table.  This can be done with a single command (note the use of the -p switch).
 
 
+```shell
+hdfs dfs -mkdir -p /user/hive/warehouse/pythonudf/transactions
 ```
-    hdfs dfs -mkdir -p /user/hive/warehouse/python-udf/transactions
-```
-
-
-
-    
-
-<p id="gdcalert18" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image18.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert19">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image18.png "image_tooltip")
-
 
 Copy the python and log files from the /tmp/ directory to their destinations in HDFS:
 
-
+```shell
+hdfs dfs -put /tmp/parse_log.py /user/hive/
+hdfs dfs -put /tmp/transactions.log /user/hive/warehouse/pythonudf/transactions/
 ```
-    hdfs dfs -put /tmp/parse_log.py /user/hive/
-    Hdfs dfs -put /tmp/transactions.log /user/hive/warehouse/python-udf/transactions/
-```
 
+> **Example**
+> ```shell
+> root@4c9caa1f551d:/opt# hdfs dfs -mkdir -p /user/hive/warehouse/pythonudf/transactions
+> root@4c9caa1f551d:/opt# hdfs dfs -put /tmp/parse_log.py /user/hive/
+> root@4c9caa1f551d:/opt# hdfs dfs -put /tmp/transactions.log /user/hive/warehouse/pythonudf/transactions/
+> root@4c9caa1f551d:/opt#
+> ```
 
-
-
-<p id="gdcalert19" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image19.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert20">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image19.png "image_tooltip")
-
-
+<br>
 
 ### Step 3 - Connect to Hive via Beeline
 
 We will now connect to HiveServer2 via Beeline to perform the rest of the work.  Execute the following to do so:
 
-
 ```
 beeline -u jdbc:hive2://localhost:10000
 ```
 
+> **Example**
+> root@df9140664a0f:/opt# beeline -u jdbc:hive2://localhost:10000 <br>
+> SLF4J: Class path contains multiple SLF4J bindings.<br>
+> SLF4J: Found binding in [jar:file:/opt/hive/lib/log4j-slf4j-impl-2.6.2.jar!/org/slf4j/impl/StaticLoggerBinder.class]<br>
+> SLF4J: Found binding in [jar:file:/opt/hadoop-2.10.1/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]<br>
+> SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.<br>
+> SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]<br>
+> Connecting to jdbc:hive2://localhost:10000<br>
+> Connected to: Apache Hive (version 2.3.7)<br>
+> Driver: Hive JDBC (version 2.3.7)<br>
+> Transaction isolation: TRANSACTION_REPEATABLE_READ<br>
+> Beeline version 2.3.7 by Apache Hive<br>
+> 0: jdbc:hive2://localhost:10000><br>
 
-
-
-<p id="gdcalert20" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image20.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert21">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image20.png "image_tooltip")
-
-
+<br>
 
 ### Step 4 - Add file to Hive resources
 
@@ -136,121 +118,106 @@ ADD FILE hdfs://namenode/user/hive/parse_log.py;
 
 This makes the python script available to be used by the cluster during the Mapreduce operations.
 
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> ADD FILE hdfs://namenode/user/hive/parse_log.py;
+> No rows affected (0.175 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
-
-<p id="gdcalert21" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image21.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert22">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image21.png "image_tooltip")
-
-
+<br>
 
 ### Step 5 - Create Database and Table
 
 Still at the beeline prompt, execute the following commands to create a new database and table for the transactions log data:
 
+```sql
 CREATE DATABASE IF NOT EXISTS pythonudf;
-
 CREATE EXTERNAL TABLE IF NOT EXISTS pythonudf.transactions
-
 (
-
     logline STRING
-
 )
-
 ROW FORMAT DELIMITED
-
 STORED AS TEXTFILE
-
 LOCATION 'hdfs://namenode:8020/user/hive/warehouse/pythonudf/transactions';
-
+```
 
 ### 
 
-<p id="gdcalert22" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image22.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert23">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> CREATE DATABASE IF NOT EXISTS pythonudf;
+> No rows affected (0.741 seconds)
+> 0: jdbc:hive2://localhost:10000> CREATE EXTERNAL TABLE IF NOT EXISTS pythonudf.transactions
+> . . . . . . . . . . . . . . . .> (
+> . . . . . . . . . . . . . . . .>     logline STRING
+> . . . . . . . . . . . . . . . .> )
+> . . . . . . . . . . . . . . . .> ROW FORMAT DELIMITED
+> . . . . . . . . . . . . . . . .> STORED AS TEXTFILE
+> . . . . . . . . . . . . . . . .> LOCATION 'hdfs://namenode:8020/user/hive/warehouse/pythonudf/transactions';
+> No rows affected (0.226 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
-
-![alt_text](images/image22.png "image_tooltip")
-
-
+<br>
 
 ### Step 6 - Create View from TRANSFORM Query
 
 Now execute the following to create a view from a TRANSFORM query that utilizes the Python script to parse the log data:
 
-
-    CREATE VIEW pythonudf.transactions_parsed AS
-
-
-    SELECT
-
-
-    TRANSFORM (
-
-
-    logline)
-
-
-    USING 'python parse_log.py'
-
-
-     AS ip_address   
-
-
-    ,hyphen
-
-
-    ,user_name
+```sql
+CREATE VIEW pythonudf.transactions_parsed AS
+SELECT
+    TRANSFORM (logline) USING 'python parse_log.py' AS 
+        ip_address   
+        ,hyphen
+        ,user_name
+        ,datetime
+        ,rest_method
+        ,url_path
+        ,engine
+        ,return_code
+        ,bank_id
+        ,referrer
+        ,browser
+        ,operating_system
+        ,browser_detail
+FROM pythonudf.transactions;
+```
 
 
-    ,datetime
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> CREATE VIEW pythonudf.transactions_parsed AS
+> . . . . . . . . . . . . . . . .> SELECT
+> . . . . . . . . . . . . . . . .>     TRANSFORM (logline) USING 'python parse_log.py' AS
+> . . . . . . . . . . . . . . . .>         ip_address
+> . . . . . . . . . . . . . . . .>         ,hyphen
+> . . . . . . . . . . . . . . . .>         ,user_name
+> . . . . . . . . . . . . . . . .>         ,datetime
+> . . . . . . . . . . . . . . . .>         ,rest_method
+> . . . . . . . . . . . . . . . .>         ,url_path
+> . . . . . . . . . . . . . . . .>         ,engine
+> . . . . . . . . . . . . . . . .>         ,return_code
+> . . . . . . . . . . . . . . . .>         ,bank_id
+> . . . . . . . . . . . . . . . .>         ,referrer
+> . . . . . . . . . . . . . . . .>         ,browser
+> . . . . . . . . . . . . . . . .>         ,operating_system
+> . . . . . . . . . . . . . . . .>         ,browser_detail
+> . . . . . . . . . . . . . . . .> FROM pythonudf.transactions;
+> No rows affected (0.169 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
-
-    ,rest_method
-
-
-    ,url_path
-
-
-    ,engine
-
-
-    ,return_code
-
-
-    ,bank_id
-
-
-    ,referrer
-
-
-    ,browser
-
-
-    ,operating_system
-
-
-    ,browser_detail
-
-
-    FROM pythonudf.transactions;
-
-
-
-<p id="gdcalert23" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image23.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert24">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image23.png "image_tooltip")
-
-
+<br>
 
 ### Step 7 - Select from New View
 
 Finally here is an example SELECT statement you can execute to view some columns of the first five records:
 
+```sql
 SELECT ip_address, user_name, bank_id FROM pythonudf.transactions_parsed LIMIT 5;
-
+```
 
 
 <p id="gdcalert24" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image24.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert25">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
@@ -259,6 +226,6 @@ SELECT ip_address, user_name, bank_id FROM pythonudf.transactions_parsed LIMIT 5
 ![alt_text](images/image24.png "image_tooltip")
 
 
- > [Go back to Exercise 2](pages/exercise_two.md)
+ > [Go back to Challenge 1](exercise_two.md)
 
- > [Continue on to Exercise 3](pages/exercise_three.md)
+ > [Continue on to Exercise 4](exercise_four.md)
