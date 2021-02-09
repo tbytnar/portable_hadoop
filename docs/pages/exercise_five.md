@@ -10,74 +10,50 @@ If you still have the terminal shell open from the previous exercise, feel free 
 You’ll need to know the full path to the source file you wish to inject into the Docker container.  Once you have this, then execute the following command:
 
 
+```shell
+docker cp "documentation/exercise_5/wnv_human_cases.csv" hive-server:/tmp
 ```
-    docker cp "documentation/Exercise 5/wnv_human_cases.csv" hive-server:/tmp
-```
 
-
-
-    Once the command completes, your file has been injected into the /tmp/ directory on the datanode container
-
-
-    
-
-<p id="gdcalert25" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image25.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert26">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image25.png "image_tooltip")
+Once the command completes, your file has been injected into the /tmp/ directory on the datanode container
 
 
 Validate that the file has been injected by attaching to the container’s shell and viewing the contents of the /tmp/ directory
 
 
 ```
-    docker-compose exec hive-server bash
-    ls /tmp/
+docker-compose exec hive bash
+ls /tmp/
 ```
 
 
+> **Example**
+> ```shell
+> PS C:\Users\tab1018\Documents\Docker\portable_hadoop> docker cp "documentation/exercise_5/wnv_human_cases.csv" hive-server:/tmp
+> PS C:\Users\tab1018\Documents\Docker\portable_hadoop> docker-compose exec hive bash
+> root@b29450b15328:/opt# ls /tmp/
+> 7f519d5b-5647-4126-8908-5110b77e29c6_resources  drivers.csv  hadoop-unjar9136625060577656635  hsperfdata_root  jetty-0.0.0.0-10002-hiveserver2-_-any-  parse_log.py  root  transactions.log  trucks.txt  wnv_human_cases.csv
+> root@b29450b15328:/opt#
+> ```
 
-    
-
-<p id="gdcalert26" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image26.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert27">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image26.png "image_tooltip")
-
-
+<br>
 
 ### Step 2 - Adding Flat File to HDFS
 
 If you are still attached to the datanode container’s shell, feel free to reuse that.  If not please attach to that using the following:
 
 
+```shell
+docker-compose exec hive-server bash
 ```
-    docker-compose exec hive-server bash
-```
-
 
 Copy the source file from the /tmp/ directory to the flatfiles HDFS directory:
 
 
+```shell
+hdfs dfs -put /tmp/wnv_human_cases.csv /user/hive/flatfiles/
 ```
-    hdfs dfs -put /tmp/wnv_human_cases.csv /user/hive/flatfiles/
-```
 
-
-
-
-<p id="gdcalert27" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image27.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert28">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image27.png "image_tooltip")
-
-
-At this point we have completed our work in the datanode container.  You can now leave its shell prompt by executing the following:
-
-
-
-    1. <code><em>exit</em></code>
-
+<br>
 
 ### Step 3 - Create SERDE table for flat file data
 
@@ -88,78 +64,100 @@ We will now connect to HiveServer2 via Beeline to perform the rest of the work. 
 beeline -u jdbc:hive2://localhost:10000
 ```
 
+> **Example**
+> ```shell
+> root@df9140664a0f:/opt# beeline -u jdbc:hive2://localhost:10000 <br>
+> SLF4J: Class path contains multiple SLF4J bindings.<br>
+> SLF4J: Found binding in [jar:file:/opt/hive/lib/log4j-slf4j-impl-2.6.2.jar!/org/slf4j/impl/StaticLoggerBinder.class]<br>
+> SLF4J: Found binding in [jar:file:/opt/hadoop-2.10.1/share/hadoop/common/lib/slf4j-log4j12-1.7.25.jar!/org/slf4j/impl/StaticLoggerBinder.class]<br>
+> SLF4J: See http://www.slf4j.org/codes.html#multiple_bindings for an explanation.<br>
+> SLF4J: Actual binding is of type [org.apache.logging.slf4j.Log4jLoggerFactory]<br>
+> Connecting to jdbc:hive2://localhost:10000<br>
+> Connected to: Apache Hive (version 2.3.7)<br>
+> Driver: Hive JDBC (version 2.3.7)<br>
+> Transaction isolation: TRANSACTION_REPEATABLE_READ<br>
+> Beeline version 2.3.7 by Apache Hive<br>
+> 0: jdbc:hive2://localhost:10000><br>
+> ```
 
-
-
-<p id="gdcalert28" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image28.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert29">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image28.png "image_tooltip")
-
+<br>
 
 Now at the beeline prompt, copy and paste the following code to create a new SERDE table.
 
 NOTE: We’re using the quoteChar setting here to remove the surrounding quotes for each of the cell values.
 
 
-```
-    CREATE EXTERNAL TABLE wnv_cases (
-        year STRING, 
-        week STRING, 
-        county STRING, 
-        cases INT
-    )
-    ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
-    WITH SERDEPROPERTIES (
-       "separatorChar" = ",",
-       "quoteChar"     = "\""
-    );
+```sql
+CREATE EXTERNAL TABLE wnv_cases (
+    year STRING, 
+    week STRING, 
+    county STRING, 
+    cases INT
+)
+ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+WITH SERDEPROPERTIES (
+    "separatorChar" = ",",
+    "quoteChar"     = "\""
+);
 ```
 
 
 Next we’ll load the flatfile data into this table using the following:
 
 
+```sql
+LOAD DATA INPATH '/user/hive/flatfiles/wnv_human_cases.csv' INTO TABLE wnv_cases;
 ```
-load data inpath '/user/hive/flatfiles/wnv_human_cases.csv' into table wnv_cases;
-```
 
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> CREATE EXTERNAL TABLE wnv_cases (
+> . . . . . . . . . . . . . . . .>     year STRING,
+> . . . . . . . . . . . . . . . .>     week STRING,
+> . . . . . . . . . . . . . . . .>     county STRING,
+> . . . . . . . . . . . . . . . .>     cases INT
+> . . . . . . . . . . . . . . . .> )
+> . . . . . . . . . . . . . . . .> ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+> . . . . . . . . . . . . . . . .> WITH SERDEPROPERTIES (
+> . . . . . . . . . . . . . . . .>     "separatorChar" = ",",
+> . . . . . . . . . . . . . . . .>     "quoteChar"     = "\""
+> . . . . . . . . . . . . . . . .> );
+> No rows affected (0.121 seconds)
+> 0: jdbc:hive2://localhost:10000> LOAD DATA INPATH '/user/hive/flatfiles/wnv_human_cases.csv' INTO TABLE wnv_cases;
+> No rows affected (0.278 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
-
-
-<p id="gdcalert29" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image29.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert30">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image29.png "image_tooltip")
-
-
+<br>
 
 ### Step 4 - Create Partitioned Table and Load data
 
 Now that we’ve loaded the data into a SERDE table, we can create a new partitioned table using the following:
 
-
-    create table wnv_cases_part(year string,week string,cases INT) PARTITIONED BY(county string);
+```sql
+create table wnv_cases_part(year string,week string,cases INT) PARTITIONED BY(county string);
+```
 
 And finally we can load the data from the previously created SERDE table into the new partitioned table using this:
 
+```sql
+set hive.exec.dynamic.partition.mode=nonstrict;
+INSERT OVERWRITE TABLE wnv_cases_part PARTITION(county)
+SELECT year,week,cases,county from wnv_cases;
+```
 
-    set hive.exec.dynamic.partition.mode=nonstrict;
-
-
-    INSERT OVERWRITE TABLE wnv_cases_part PARTITION(county)
-
-
-    SELECT year,week,cases,county from  wnv_cases;
-
-
-
-<p id="gdcalert30" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image30.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert31">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image30.png "image_tooltip")
-
-
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> set hive.exec.dynamic.partition.mode=nonstrict;
+> No rows affected (0.006 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> 0: jdbc:hive2://localhost:10000> INSERT OVERWRITE TABLE wnv_cases_part PARTITION(county)
+> . . . . . . . . . . . . . . . .>
+> . . . . . . . . . . . . . . . .> SELECT year,week,cases,county from wnv_cases;
+> WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+> No rows affected (16.332 seconds)
+> 0: jdbc:hive2://localhost:10000>
+> ```
 
 ### Step 5 - Inspect HDFS
 
@@ -167,13 +165,24 @@ Feel free to run any SQL commands you want against that table (do not drop the t
 
 Now at the shell prompt, execute this command:
 
+```shell
 hdfs dfs -ls /user/hive/warehouse/wnv_cases_part
+```
 
 It’s clear to see here how Hive partitioning works within HDFS.  Each record is now organized in it’s own county’s directory as seen below:
 
+> **Example**
+> ```shell
+> root@b29450b15328:/opt# hdfs dfs -ls /user/hive/warehouse/wnv_cases_part
+> Found 50 items
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Alameda
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Amador
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Butte
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Calaveras
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Colusa
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=Contra Costa
+> drwxrwxr-x   - root supergroup          0 2021-02-09 02:56 /user/hive/warehouse/wnv_cases_part/county=County
+> ...
+> root@b29450b15328:/opt#
+> ```
 
-
-<p id="gdcalert31" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image31.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert32">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image31.png "image_tooltip")
