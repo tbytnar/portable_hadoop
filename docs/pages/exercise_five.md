@@ -161,7 +161,8 @@ SELECT year,week,cases,county from wnv_cases;
 
 ### Step 5 - Inspect HDFS
 
-Feel free to run any SQL commands you want against that table (do not drop the table).  Once you have finished exit beeline by executing:  !q
+Feel free to run any SQL commands you want against that table (do not drop the table).  Once you have finished exit beeline by executing:  
+> !q
 
 Now at the shell prompt, execute this command:
 
