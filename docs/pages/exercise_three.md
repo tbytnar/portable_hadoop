@@ -219,11 +219,21 @@ Finally here is an example SELECT statement you can execute to view some columns
 SELECT ip_address, user_name, bank_id FROM pythonudf.transactions_parsed LIMIT 5;
 ```
 
-
-<p id="gdcalert24" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image24.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert25">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-![alt_text](images/image24.png "image_tooltip")
+> **Example**
+> ```shell
+> 0: jdbc:hive2://localhost:10000> SELECT ip_address, user_name, bank_id FROM pythonudf.transactions_parsed LIMIT 5;
+> WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+> +-----------------+---------------+----------+
+> |   ip_address    |   user_name   | bank_id  |
+> +-----------------+---------------+----------+
+> | 13.200.56.57    | funk2780      | 22       |
+> | 36.196.137.210  | hansen6533    | 9        |
+> | 175.17.18.238   | johnston5222  | 25       |
+> | 86.219.181.14   | jacobi7002    | 12       |
+> | 88.225.160.81   | ondricka8103  | 25       |
+> +-----------------+---------------+----------+
+> 5 rows selected (13.321 seconds)
+> 0: jdbc:hive2://localhost:10000>
 
 
  > [Go back to Challenge 1](exercise_two.md)
