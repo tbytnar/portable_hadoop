@@ -2,6 +2,7 @@
 
 Scenario:  You’ve been given a flat file dataset and have been asked to create a partitioned table in hive for the data.  
 
+<br>
 
 ### Step 1 - Uploading Flat File Data
 
@@ -158,6 +159,8 @@ SELECT year,week,cases,county from wnv_cases;
 > No rows affected (16.332 seconds)
 > 0: jdbc:hive2://localhost:10000>
 > ```
+
+<br>
 
 ### Step 5 - Inspect HDFS
 
